@@ -1,1 +1,37 @@
 # Write Kubernetes Deployment Script
+apiVersion: apps/v1
+kind: Deployment #Sets up a Kubernetes deployment that ensures our microservice remains operational
+metadata:
+  name: book-catalog #Sets the name of the deployment
+spec:
+  replicas: 1 #Asks that this deployment maintain just one instance of our microservice.
+  selector:
+    matchLabels:
+      app: book-catalog #Links the deployment, pod, and service together
+  template: #A template for the pod designed to run our microservice
+    metadata:
+      labels:
+        app: book-catalog #Links the deployment, pod, and service
+    spec:
+      containers: 
+      - name: book-catalog
+        image: book-catalog:1 #Indicates that the container for this microservice should be instantiated using the book-catalog image (version 1).
+        imagePullPolicy: Never #The image doesn't need to be fetched from a container registry because we're deploying locally.
+        env: #Sets environment variables for the microservice
+        - name: PORT
+          value: "3000" #Sets the port for the microservice to 3000
+
+--- #Divides the configuration file into two main sections
+apiVersion: v1
+kind: Service #Sets up a Kubernetes service that generates a DNS record and makes our microservice accessible to HTTP requests
+metadata:
+  name: book-catalog #Sets the name of the service spec: selector:
+spec:
+  selector:
+    app: book-catalog #Links the deployment, pod, and service together
+  type: NodePort #Establishes a NodePort for the service, making the microservice accessible on a local port for HTTP requests.
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 3000 #Associates port 3000 inside the container with port 30000 on the host machine. This setup allows us to make HTTP requests to the microservice from the development computer.
+      nodePort: 30000 #Associates port 3000 inside the container with port 30000 on the host machine. This setup allows us to make HTTP requests to the microservice from the development computer.
